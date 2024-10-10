@@ -9,6 +9,8 @@ import UIKit
 import CoreData
 
 class FavoriteViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    
+    let viewModel = SearchViewModel()
 
     let tableView: UITableView = {
         let table = UITableView()
@@ -17,12 +19,17 @@ class FavoriteViewController: UIViewController, UITableViewDataSource, UITableVi
         return table
     }()
 
-    var favoriteMovies: [MovieDetails] = []
+    var favoriteMovies: [MovieDetailEntity] = []
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setupFavoriteView()
+        tableView.reloadData()
+        NotificationCenter.default.addObserver(self, selector: #selector(updateFavorites), name: NSNotification.Name("FavoritesUpdated"), object: nil)
+        
+        fetchFavoriteMovies()
+
     }
     
     func setupFavoriteView() {
@@ -43,26 +50,35 @@ class FavoriteViewController: UIViewController, UITableViewDataSource, UITableVi
         fetchFavorites()
     }
     
-    func fetchFavorites() {
-        let fetchRequest: NSFetchRequest<MovieDetails> = MovieDetails.fetchRequest()
-        do {
-            favoriteMovies = try context.fetch(fetchRequest)
-            tableView.reloadData()
-        } catch {
-            print("Ошибка загрузки данных: \(error)")
-        }
+    @objc func updateFavorites() {
+        fetchFavoriteMovies()
+        tableView.reloadData()
     }
     
-    func openDetails(with movie: MovieDetails) {
-        let detailsVC = SearchDetailsViewController()
+    func fetchFavoriteMovies() {
+        favoriteMovies = CoreDataService.shared.fetchFavorites()
+    }
+    
+    func fetchFavorites() {
+        favoriteMovies = CoreDataService.shared.fetchFavorites()
+        tableView.reloadData()
+    }
+    
+    func openDetails(with movie: MovieModel) {
+        let detailVC = SearchDetailsViewController()
+        let imdbID = movie.imdbID
         
-        let movieModel = MovieModel(title: (movie.imdbID ?? "" as NSObject as NSObject as! String) as! String, year: (movie.title ?? "" as NSObject as! String) as! String, imdbID: (movie.poster ?? "" as NSObject as! String) as! String, type: "", poster: "")
-        
-        detailsVC.movie = movieModel
-        detailsVC.configureTitle(with: movieModel)
-        detailsVC.configurePlot(with: movieModel)
-        detailsVC.configureImage(with: movieModel)
-        navigationController?.pushViewController(detailsVC, animated: true)
+        viewModel.fetchMovieDetails(imdbID: imdbID) { [weak self] result in
+            switch result {
+            case .success(let details):
+                DispatchQueue.main.async {
+                    detailVC.movie = details
+                    self?.navigationController?.pushViewController(detailVC, animated: true)
+                }
+            case .failure(let error):
+                print("Error fetching movie details: \(error)")
+            }
+        }
     }
 
     // MARK: - UITableViewDataSource
@@ -101,20 +117,26 @@ class FavoriteViewController: UIViewController, UITableViewDataSource, UITableVi
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let selectedMovie = favoriteMovies[indexPath.row]
-        openDetails(with: selectedMovie)
+        let movieModel = MovieModel(
+            title: selectedMovie.title ?? "",
+            year: selectedMovie.year ?? "",
+            imdbID: selectedMovie.imdbID ?? "",
+            type: selectedMovie.type ?? "",
+            poster: selectedMovie.poster ?? ""
+        )
+        openDetails(with: movieModel)
     }
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            let movieToDelete = favoriteMovies[indexPath.row]
-            context.delete(movieToDelete)
-            do {
-                try context.save()
-                favoriteMovies.remove(at: indexPath.row)
-                tableView.deleteRows(at: [indexPath], with: .fade)
-            } catch {
-                print("Ошибка при удалении: \(error)")
+            guard indexPath.row < favoriteMovies.count else {
+                print("Ошибка: индекс выходит за пределы массива.")
+                return
             }
+            
+            let movieToDelete = favoriteMovies[indexPath.row]
+            CoreDataService.shared.removeFromFavorites(movie: movieToDelete)
+            fetchFavoriteMovies()
         }
     }
 }

@@ -8,23 +8,27 @@
 import Foundation
 
 struct MovieDetailsModel: Decodable {
-    
-    let title: String
-    let year: String
-    let imdbID: String
-    let type: String
-    let poster: String
-    let plot: String
+    let title: String?
+    let genre: String?
+    let releaseDate: String?
+    let director: String?
+    let plot: String?
+    let imdbRating: String?
+    let poster: String?
+    let imdbID: String?
     
     enum CodingKeys: String, CodingKey {
         case title = "Title"
-        case year = "Year"
-        case imdbID = "imdbID"
-        case type = "Type"
-        case poster = "Poster"
+        case genre = "Genre"
+        case releaseDate = "Released"
+        case director = "Director"
         case plot = "Plot"
+        case imdbRating = "imdbRating"
+        case poster = "Poster"
+        case imdbID = "imdbID"
     }
 }
+
 
 struct MovieDetailsSearchResponse: Decodable {
     

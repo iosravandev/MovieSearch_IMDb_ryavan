@@ -39,10 +39,10 @@ class TabBarController: UITabBarController {
 
 class SearchViewController: UIViewController, UICollectionViewDelegate, CustomSearchBarDelegate {
     
+    // MARK: - Screen Items
+    
     private let customSearchBar = CustomSearchBar()
-    
     let viewModel = SearchViewModel()
-    
     let detailsViewModel = SearchDetailsViewModel()
     
     lazy var mainCollectionView: UICollectionView = {
@@ -61,10 +61,24 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, CustomSe
         return collectionView
     }()
     
+    private let loadMoreButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Load More", for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.backgroundColor = .systemBlue
+        button.layer.cornerRadius = 10
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
+        mainCollectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter, withReuseIdentifier: "Footer")
+        
     }
+    
+    // MARK: - Functions
     
     private func setupView() {
         view.addSubview(mainCollectionView)
@@ -76,7 +90,39 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, CustomSe
             mainCollectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
         setupCustomSearchBar()
+        setupLoadMoreButton()
     }
+    
+    private func setupLoadMoreButton() {
+        view.addSubview(loadMoreButton)
+        NSLayoutConstraint.activate([
+            loadMoreButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            loadMoreButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            loadMoreButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16)
+        ])
+        
+        loadMoreButton.addTarget(self, action: #selector(loadMoreMovies), for: .touchUpInside)
+    }
+    
+    @objc private func loadMoreMovies() {
+        guard !viewModel.currentSearchText.isEmpty else {
+            print("No search text available")
+            return
+        }
+        
+        viewModel.currentPage += 1
+        viewModel.fetchMovies(for: viewModel.currentSearchText, page: viewModel.currentPage) { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    self?.mainCollectionView.reloadData()
+                case .failure(let error):
+                    print("Error loading more movies: \(error)")
+                }
+            }
+        }
+    }
+    
     
     private func setupCustomSearchBar() {
         view.addSubview(customSearchBar)
@@ -92,7 +138,8 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, CustomSe
     }
     
     func searchBarDidSubmit(_ searchText: String) {
-        viewModel.fetchMovies(for: searchText) { [weak self] result in
+        viewModel.currentPage = 1
+        viewModel.fetchMovies(for: searchText, page: viewModel.currentPage) { [weak self] result in
             switch result {
             case .success(let movies):
                 DispatchQueue.main.async {
@@ -105,13 +152,31 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, CustomSe
         }
     }
     
+    
     func openDetails(with movie: MovieModel) {
-        let detailsVC = SearchDetailsViewController()
-        detailsVC.movie = movie
-        detailsVC.configureTitle(with: movie)
-        detailsVC.configurePlot(with: movie)
-        detailsVC.configureImage(with: movie)
-        navigationController?.pushViewController(detailsVC, animated: true)
+        let movieModel = MovieModel(
+            title: movie.title ?? "No Title",
+            year: movie.year ?? "No Year",
+            imdbID: movie.imdbID ?? "No ID",
+            type: movie.type ?? "No Type",
+            poster: movie.poster ?? "No Poster"
+        )
+        
+        print("Created movieModel: \(movieModel)")
+        
+        let detailVC = SearchDetailsViewController()
+        
+        viewModel.fetchMovieDetails(imdbID: movie.imdbID) { [weak self] (result: Result<MovieDetailsModel, Error>) in
+            switch result {
+            case .success(let details):
+                DispatchQueue.main.async {
+                    detailVC.movie = details
+                    self?.navigationController?.pushViewController(detailVC, animated: true)
+                }
+            case .failure(let error):
+                print("Failed to fetch movie details: \(error)")
+            }
+        }
     }
     
 }
@@ -136,4 +201,19 @@ extension SearchViewController: UICollectionViewDataSource, UICollectionViewDele
         let selectedMovie = viewModel.movies[indexPath.item]
         openDetails(with: selectedMovie)
     }
+    
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        if kind == UICollectionView.elementKindSectionFooter {
+            let footer = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "Footer", for: indexPath)
+            footer.addSubview(loadMoreButton)
+            loadMoreButton.frame = footer.bounds
+            return footer
+        }
+        return UICollectionReusableView()
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {
+        return CGSize(width: collectionView.frame.width, height: 50)
+    }
+    
 }
