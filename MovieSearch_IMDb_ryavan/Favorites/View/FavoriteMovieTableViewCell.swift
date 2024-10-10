@@ -68,15 +68,16 @@ class FavoriteMovieTableViewCell: UITableViewCell {
         ])
     }
     
-    func configure(with movie: MovieDetails) {
+    func configure(with movie: MovieDetailEntity) {
         movieTitleLabel.text = movie.title
         moviePlotLabel.text = movie.plot
         
-        if let posterURL = movie.poster, let url = URL(string: posterURL ), posterURL != "" {
+        if let posterURL = movie.poster, let url = URL(string: posterURL) {
             movieImageView.sd_setImage(with: url, placeholderImage: UIImage(systemName: "photo"))
         } else {
             movieImageView.image = UIImage(systemName: "photo")
         }
     }
+
 }
 

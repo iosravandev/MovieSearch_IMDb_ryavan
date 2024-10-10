@@ -11,10 +11,9 @@ struct MovieModel: Decodable {
     
     let title: String
     let year: String
-    let imdbID: String  
+    let imdbID: String
     let type: String
     let poster: String
-    //let plot: String
     
     enum CodingKeys: String, CodingKey {
         case title = "Title"

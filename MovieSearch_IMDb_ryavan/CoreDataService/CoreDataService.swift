@@ -5,77 +5,129 @@
 //  Created by Ravan on 06.10.24.
 //
 
-import CoreData
 import UIKit
+import Foundation
+import CoreData
 
 class CoreDataService {
     
-    private let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    public static let shared = CoreDataService()
+    private init() {}
     
-    let container = NSPersistentContainer(name: "CoreData")
-
-    func saveToFavorites(movie: MovieModel) {
-        let fetchRequest: NSFetchRequest<MovieDetails> = MovieDetails.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "imdbID == %@", movie.imdbID)
-
+    lazy var persistentContainer: NSPersistentContainer = {
+        let container = NSPersistentContainer(name: "MovieSearch_IMDb_ryavan")
+        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
+            if let error = error as NSError? {
+                fatalError("Unresolved error \(error), \(error.userInfo)")
+            }
+        })
+        return container
+    }()
+    
+    var viewContext: NSManagedObjectContext {
+        return persistentContainer.viewContext
+    }
+    
+    func fetchEntity<T: NSManagedObject>(entityName: String, predicate: NSPredicate? = nil) -> [T] {
+        let fetchRequest = NSFetchRequest<T>(entityName: entityName)
+        fetchRequest.predicate = predicate
+        
         do {
-            let fetchedMovies = try context.fetch(fetchRequest)
+            return try viewContext.fetch(fetchRequest)
+        } catch {
+            print("Ошибка - загрузка данных: \(error)")
+            return []
+        }
+    }
+    
+    func saveToFavorites(movie: MovieModel) {
+        let fetchRequest: NSFetchRequest<MovieDetailEntity> = NSFetchRequest<MovieDetailEntity>(entityName: "MovieDetailEntity")
+        fetchRequest.predicate = NSPredicate(format: "imdbID == %@", movie.imdbID)
+        do {
+            let fetchedMovies = try viewContext.fetch(fetchRequest)
             if fetchedMovies.isEmpty {
-                let favoriteMovie = MovieDetails(context: context)
+                let favoriteMovie = MovieDetailEntity(context: viewContext)
                 favoriteMovie.imdbID = movie.imdbID
                 favoriteMovie.title = movie.title
                 favoriteMovie.poster = movie.poster
-                //favoriteMovie.plot = movie.plot
                 favoriteMovie.year = movie.year
                 favoriteMovie.type = movie.type
-                try context.save()
-                print("Фильм сохранил")
+                
+                try viewContext.save()
+                print("фильм сохранен")
+                NotificationCenter.default.post(name: NSNotification.Name("FavoritesUpdated"), object: nil)
             } else {
-                print("Фильм добавил")
+                print("фильм уже добавлен")
             }
         } catch {
-            print("Ошибка сохранения: \(error)")
+            print("ошибка сохранения: \(error.localizedDescription)")
         }
     }
     
-    func removeFromFavorites(movie: MovieModel) {
-        let fetchRequest: NSFetchRequest<MovieDetails> = MovieDetails.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "imdbID == %@", movie.imdbID)
-
+    func removeFromFavorites(movie: MovieDetailEntity) {
+        let context = viewContext
+        context.delete(movie)
         do {
-            let fetchedMovies = try context.fetch(fetchRequest)
-            if let movieToDelete = fetchedMovies.first {
-                context.delete(movieToDelete)
-                try context.save()
-                print("Фильм удален")
-            }
+            try context.save()
+            print("фильм удален")
+            NotificationCenter.default.post(name: NSNotification.Name("FavoritesUpdated"), object: nil)
         } catch {
-            print("Ошибка удалении: \(error)")
+            print("ошибка удаления: \(error.localizedDescription)")
         }
     }
-
-    func isFavorite(movie: MovieModel) -> Bool {
-        let fetchRequest: NSFetchRequest<MovieDetails> = MovieDetails.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "imdbID == %@", movie.imdbID)
+    
+    func fetchMovieEntity(by imdbID: String) -> MovieDetailEntity? {
+        let fetchRequest: NSFetchRequest<MovieDetailEntity> = MovieDetailEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "imdbID == %@", imdbID)
         
         do {
-            let count = try context.count(for: fetchRequest)
+            let fetchedMovies = try viewContext.fetch(fetchRequest)
+            return fetchedMovies.first
+        } catch {
+            print("ошибка загрузки : \(error.localizedDescription)")
+            return nil
+        }
+    }
+    
+    func isFavorite(movie: MovieDetailEntity) -> Bool {
+        let fetchRequest: NSFetchRequest<MovieDetailEntity> = NSFetchRequest<MovieDetailEntity>(entityName: "MovieDetailEntity")
+        fetchRequest.predicate = NSPredicate(format: "imdbID == %@", movie.imdbID ?? "")
+        
+        do {
+            let count = try viewContext.count(for: fetchRequest)
             return count > 0
         } catch {
-            print("Ошибка: \(error)")
+            print("Ошибка при проверке избранного: \(error.localizedDescription)")
             return false
         }
     }
     
-    func fetchFavorites() -> [MovieDetails] {
-        let fetchRequest: NSFetchRequest<MovieDetails> = MovieDetails.fetchRequest()
+    func fetchFavorites() -> [MovieDetailEntity] {
+        let fetchRequest: NSFetchRequest<MovieDetailEntity> = NSFetchRequest<MovieDetailEntity>(entityName: "MovieDetailEntity")
         do {
-            let favoriteMovies = try context.fetch(fetchRequest)
+            let favoriteMovies = try viewContext.fetch(fetchRequest)
             return favoriteMovies
         } catch {
-            print("Ошибка: \(error)")
+            print("Ошибка загрузки избранного: \(error.localizedDescription)")
             return []
         }
     }
+    
+    func isFavoriteEntity(movieEntity: MovieDetailEntity) -> Bool {
+        let fetchRequest: NSFetchRequest<MovieDetailEntity> = NSFetchRequest<MovieDetailEntity>(entityName: "MovieDetailEntity")
+        fetchRequest.predicate = NSPredicate(format: "imdbID == %@", movieEntity.imdbID ?? "")
+        
+        do {
+            let count = try viewContext.count(for: fetchRequest)
+            return count > 0
+        } catch {
+            print("Ошибка при проверке избранного: \(error.localizedDescription)")
+            return false
+        }
+    }
+    
+    class func fetchRequest() -> NSFetchRequest<MovieDetailEntity> {
+        return NSFetchRequest<MovieDetailEntity>(entityName: "MovieDetailEntity")
+    }
+    
 }
-
