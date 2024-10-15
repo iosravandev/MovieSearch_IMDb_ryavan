@@ -59,11 +59,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-<<<<<<< HEAD
 				956FE7252CBEC27A00C61968 /* Alamofire in Frameworks */,
 				956FE7272CBEC27A00C61968 /* AlamofireDynamic in Frameworks */,
-=======
->>>>>>> main
 				95108CCA2CB2D9D8006FFA9E /* SDWebImageMapKit in Frameworks */,
 				95108CC82CB2D9D8006FFA9E /* SDWebImage in Frameworks */,
 			);
@@ -270,11 +267,8 @@
 			packageProductDependencies = (
 				95108CC72CB2D9D8006FFA9E /* SDWebImage */,
 				95108CC92CB2D9D8006FFA9E /* SDWebImageMapKit */,
-<<<<<<< HEAD
 				956FE7242CBEC27A00C61968 /* Alamofire */,
 				956FE7262CBEC27A00C61968 /* AlamofireDynamic */,
-=======
->>>>>>> main
 			);
 			productName = MovieSearch_IMDb_ryavan;
 			productReference = 9503D40D2CA85AB100D3C923 /* MovieSearch_IMDb_ryavan.app */;
@@ -306,10 +300,9 @@
 			mainGroup = 9503D4042CA85AB100D3C923;
 			packageReferences = (
 				95108CC62CB2D9D8006FFA9E /* XCRemoteSwiftPackageReference "SDWebImage" */,
-<<<<<<< HEAD
+
 				956FE7232CBEC27A00C61968 /* XCRemoteSwiftPackageReference "Alamofire" */,
-=======
->>>>>>> main
+
 			);
 			productRefGroup = 9503D40E2CA85AB100D3C923 /* Products */;
 			projectDirPath = "";
@@ -575,7 +568,6 @@
 			requirement = {
 				kind = exactVersion;
 				version = 5.19.7;
-<<<<<<< HEAD
 			};
 		};
 		956FE7232CBEC27A00C61968 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
@@ -584,8 +576,6 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 5.10.0;
-=======
->>>>>>> main
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
