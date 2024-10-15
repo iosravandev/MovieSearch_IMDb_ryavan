@@ -10,7 +10,7 @@ import Alamofire
 
 class SearchViewModel {
     
-// MARK: - Variables & Constants
+    // MARK: - Variables & Constants
     
     let apiKey = "ada0588d"
     lazy var baseUrl = "http://www.omdbapi.com/?apikey=\(apiKey)&"
@@ -19,58 +19,46 @@ class SearchViewModel {
     var completionHandler: ((Result<[MovieModel], Error>) -> Void)?
     var currentPage = 1
     var currentSearchText: String = ""
-
-// MARK: - Functions
+    
+    // MARK: - Functions
     
     func fetchMovieDetails(imdbID: String, completion: @escaping (Result<MovieDetailsModel, Error>) -> Void) {
         
         let urlString = "https://www.omdbapi.com/?apikey=\(apiKey)&i=\(imdbID)&plot=full&r=json"
         
         AF.request("\(urlString)")
-        .validate()
-        .responseDecodable(of: MovieDetailsModel.self) { response in
-            switch response.result {
-            case .success(let data):
-                completion(.success(data))
-            case .failure(let error):
-                completion(.failure(error))
-            }
-        }
-    }
-        
-    func fetchMovies(for searchTerm: String, page: Int, completion: @escaping (Result<[MovieModel], Error>) -> Void) {
-        currentSearchText = searchTerm
-        let endpoint = "s=\(searchTerm)&page=\(page)"
-            
-    func fetchMovieDetails(imdbID: String, completion: @escaping (Result<MovieDetailsModel, Error>) -> Void) {
-        let urlString = "https://www.omdbapi.com/?apikey=\(apiKey)&i=\(imdbID)&plot=full&r=json"
-        AF.request(urlString)
-                .validate()
-                .responseDecodable(of: MovieDetailsModel.self) { response in
-                    switch response.result {
-                    case .success(let data):
-                        completion(.success(data))
-                    case .failure(let error):
-                        completion(.failure(error))
-                    }
+            .validate()
+            .responseDecodable(of: MovieDetailsModel.self) { response in
+                switch response.result {
+                case .success(let data):
+                    completion(.success(data))
+                case .failure(let error):
+                    completion(.failure(error))
                 }
+            }
     }
     
     func fetchMovies(for searchTerm: String, page: Int, completion: @escaping (Result<[MovieModel], Error>) -> Void) {
         currentSearchText = searchTerm
         let endpoint = "s=\(searchTerm)&page=\(page)"
-        NetworkManager.shared.fetchData(endpoint: endpoint) { (result: Result<MovieSearchResponse, Error>) in
-            switch result {
-            case .success(let response):
-                if response.response == "True" {
-                    self.movies.append(contentsOf: response.search)
-                    completion(.success(response.search))
-                } else {
-                    completion(.success([]))
+        let urlString = "\(baseUrl)\(endpoint)"
+        
+        AF.request(urlString)
+            .validate()
+            .responseDecodable(of: MovieSearchResponse.self) { response in
+                switch response.result {
+                case .success(let movieResponse):
+                    if movieResponse.response == "True" {
+                        self.movies.append(contentsOf: movieResponse.search)
+                        completion(.success(movieResponse.search))
+                    } else {
+                        completion(.success([]))
+                    }
+                case .failure(let error):
+                    completion(.failure(error))
                 }
-            case .failure(let error):
-                completion(.failure(error))
             }
-        }
     }
+
 }
+
