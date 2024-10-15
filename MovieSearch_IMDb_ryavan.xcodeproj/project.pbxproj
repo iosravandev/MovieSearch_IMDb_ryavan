@@ -28,7 +28,6 @@
 		9518F8332CAF0ADE00537206 /* SearchDetailsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9518F8322CAF0ADE00537206 /* SearchDetailsViewModel.swift */; };
 		956FE7252CBEC27A00C61968 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 956FE7242CBEC27A00C61968 /* Alamofire */; };
 		956FE7272CBEC27A00C61968 /* AlamofireDynamic in Frameworks */ = {isa = PBXBuildFile; productRef = 956FE7262CBEC27A00C61968 /* AlamofireDynamic */; };
-		95A0DEDE2CB72D0500A5D192 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95A0DEDD2CB72D0500A5D192 /* NetworkManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -51,7 +50,6 @@
 		95108CC42CB2D82E006FFA9E /* MovieSearch_IMDb_ryavan.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = MovieSearch_IMDb_ryavan.xcdatamodel; sourceTree = "<group>"; };
 		9518F8302CAF08B900537206 /* SearchDetailsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchDetailsViewController.swift; sourceTree = "<group>"; };
 		9518F8322CAF0ADE00537206 /* SearchDetailsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchDetailsViewModel.swift; sourceTree = "<group>"; };
-		95A0DEDD2CB72D0500A5D192 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -235,7 +233,6 @@
 			isa = PBXGroup;
 			children = (
 				9503D4452CA99B2400D3C923 /* Data+Extensions.swift */,
-				95A0DEDD2CB72D0500A5D192 /* NetworkManager.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -243,7 +240,6 @@
 		956FE7222CBEBFC300C61968 /* Networking */ = {
 			isa = PBXGroup;
 			children = (
-				95A0DEDD2CB72D0500A5D192 /* NetworkManager.swift */,
 			);
 			path = Networking;
 			sourceTree = "<group>";
@@ -300,9 +296,7 @@
 			mainGroup = 9503D4042CA85AB100D3C923;
 			packageReferences = (
 				95108CC62CB2D9D8006FFA9E /* XCRemoteSwiftPackageReference "SDWebImage" */,
-
 				956FE7232CBEC27A00C61968 /* XCRemoteSwiftPackageReference "Alamofire" */,
-
 			);
 			productRefGroup = 9503D40E2CA85AB100D3C923 /* Products */;
 			projectDirPath = "";
@@ -334,7 +328,6 @@
 				9503D44A2CAAC55500D3C923 /* MovieModel.swift in Sources */,
 				95108CC52CB2D82E006FFA9E /* MovieSearch_IMDb_ryavan.xcdatamodeld in Sources */,
 				9503D43B2CA94C0C00D3C923 /* SearchViewController.swift in Sources */,
-				95A0DEDE2CB72D0500A5D192 /* NetworkManager.swift in Sources */,
 				9518F8332CAF0ADE00537206 /* SearchDetailsViewModel.swift in Sources */,
 				95108CC22CB2D5F5006FFA9E /* MovieDetailEntity.swift in Sources */,
 				9503D4462CA99B2400D3C923 /* Data+Extensions.swift in Sources */,
